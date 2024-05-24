@@ -203,3 +203,30 @@ INSERT INTO doctors_specializations (doctor_fk, specialization_fk) VALUES
 ("q1w2e3r4t5y6-u7i8o9p0a1s2d3", "8h9i0j1k-2l3m4n5o-6p7q8r9s-0t1u2v3w4");        -- Mohammed Ali - Dermatology
 
 SELECT * FROM doctors_specializations;
+
+
+
+
+SELECT 
+    a.appointment_pk,
+    a.date_time,
+    p.patient_first_name,
+    p.patient_last_name,
+    d.doctor_first_name,
+    d.doctor_last_name,
+    dept.department_name,
+    s.specialization_name
+FROM 
+    appointments a
+JOIN 
+    patients p ON a.patient_fk = p.patient_pk
+JOIN 
+    doctors d ON a.doctor_fk = d.doctor_pk
+LEFT JOIN 
+    appointments_departments ad ON a.appointment_pk = ad.appointment_fk
+LEFT JOIN 
+    departments dept ON ad.department_fk = dept.department_pk
+LEFT JOIN 
+    doctors_specializations ds ON d.doctor_pk = ds.doctor_fk
+LEFT JOIN 
+    specializations s ON ds.specialization_fk = s.specialization_pk;
