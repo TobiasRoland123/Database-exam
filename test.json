@@ -1,0 +1,25 @@
+
+// Vertices Example:
+{
+    "_key": "patient_1",
+    "type": "patient",
+    "first_name": "Torben",
+    "last_name": "Larsen",
+    "date_of_birth": 1021874780
+  }
+  
+  
+
+// Edges Example:
+{
+    "_from": "patients/patient_1",
+    "_to": "appointments/appointment_1",
+    "type": "has_appointment",
+    "date_time": 1634563200
+  }
+  
+  
+
+
+  
+  

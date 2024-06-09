@@ -47,18 +47,19 @@ SELECT * FROM doctors;
 
 
 ############################################################################
-
 DROP TABLE IF EXISTS appointments;
 
-CREATE TABLE appointments(
-appointment_pk          TEXT,
-doctor_fk               TEXT,
-patient_fk              TEXT,
-date_time               INTEGER,
-PRIMARY KEY(appointment_pk)
-FOREIGN KEY(doctor_fk) REFERENCES doctors(doctor_pk),
-FOREIGN KEY(patient_fk) REFERENCES patients(patient_pk)
+-- Create the appointments table with foreign keys
+CREATE TABLE appointments (
+    appointment_pk      TEXT,
+    doctor_fk           TEXT,
+    patient_fk          TEXT,
+    date_time           INTEGER,
+    PRIMARY KEY(appointment_pk)
+    FOREIGN KEY (doctor_fk) REFERENCES doctors(doctor_pk) ON DELETE CASCADE,
+    FOREIGN KEY (patient_fk) REFERENCES patients(patient_pk) ON DELETE CASCADE
 )WITHOUT ROWID;
+
 
 INSERT INTO appointments VALUES
 ("d9607a79-5212-4c42-851f-ecf49a73e204", "4728925d-2e41-441f-9063-2bdd987152ce", "36d9a28a-1686-49ee-89a2-53d244e6e0dd", 1634563200),
@@ -204,29 +205,120 @@ INSERT INTO doctors_specializations (doctor_fk, specialization_fk) VALUES
 
 SELECT * FROM doctors_specializations;
 
-
-
-
+-- JOIN EXAMPLE
 SELECT 
     a.appointment_pk,
     a.date_time,
     p.patient_first_name,
     p.patient_last_name,
     d.doctor_first_name,
-    d.doctor_last_name,
-    dept.department_name,
-    s.specialization_name
+    d.doctor_last_name
 FROM 
     appointments a
 JOIN 
     patients p ON a.patient_fk = p.patient_pk
 JOIN 
-    doctors d ON a.doctor_fk = d.doctor_pk
-LEFT JOIN 
-    appointments_departments ad ON a.appointment_pk = ad.appointment_fk
-LEFT JOIN 
-    departments dept ON ad.department_fk = dept.department_pk
-LEFT JOIN 
-    doctors_specializations ds ON d.doctor_pk = ds.doctor_fk
-LEFT JOIN 
-    specializations s ON ds.specialization_fk = s.specialization_pk;
+    doctors d ON a.doctor_fk = d.doctor_pk;
+
+
+
+
+-- Drop the view if it exists
+DROP VIEW IF EXISTS AppointmentsSummary;
+
+-- Create the AppointmentsSummary view
+CREATE VIEW AppointmentsSummary AS
+SELECT 
+    a.appointment_pk,
+    a.date_time,
+    p.patient_first_name,
+    p.patient_last_name,
+    d.doctor_first_name,
+    d.doctor_last_name
+FROM 
+    appointments a
+JOIN 
+    patients p ON a.patient_fk = p.patient_pk
+JOIN 
+    doctors d ON a.doctor_fk = d.doctor_pk;
+
+-- Query the view
+SELECT * FROM AppointmentsSummary;
+
+
+
+
+-- Drop the view if it exists
+DROP VIEW IF EXISTS PatientsPrescriptions;
+
+-- Create the PatientsPrescriptions view
+CREATE VIEW PatientsPrescriptions AS
+SELECT 
+    p.patient_first_name,
+    p.patient_last_name,
+    pr.prescription_name
+FROM 
+    patients p
+JOIN 
+    patients_prescriptions pp ON p.patient_pk = pp.patient_fk
+JOIN 
+    prescriptions pr ON pp.prescription_fk = pr.prescription_pk;
+
+-- Query the view
+SELECT * FROM PatientsPrescriptions;
+
+
+
+
+-- UNION ---------------------------
+-- Doctors table
+SELECT doctor_first_name AS first_name, doctor_last_name AS last_name FROM doctors
+
+UNION
+
+-- Patients table
+SELECT patient_first_name AS first_name, patient_last_name AS last_name FROM patients;
+
+
+-- GROUP BY
+
+SELECT doctor_fk, COUNT(*) AS patient_count
+FROM appointments
+GROUP BY doctor_fk;
+
+
+
+
+-- HAVING 
+-- returns the doctors with a patient count over 1
+SELECT doctor_fk, COUNT(*) AS patient_count
+FROM appointments
+GROUP BY doctor_fk
+HAVING COUNT(*) > 1;
+
+
+
+
+
+
+-- CASCADE ON DELETE EXAMPLE
+
+
+-- start by inserting test date into tables
+INSERT INTO patients (patient_pk, patient_first_name, patient_last_name, patient_date_of_birth) VALUES
+('36d9a28a-1686-49ee-89a2-53d244e6e0dd', 'Torben', 'Larsen', '2002-05-21');
+
+INSERT INTO doctors (doctor_pk, doctor_first_name, doctor_last_name) VALUES
+('4728925d-2e41-441f-9063-2bdd987152ce', 'Hansi', 'Schnitzel');
+
+INSERT INTO appointments (appointment_pk, doctor_fk, patient_fk, date_time) VALUES
+('d9607a79-5212-4c42-851f-ecf49a73e204', '4728925d-2e41-441f-9063-2bdd987152ce', '36d9a28a-1686-49ee-89a2-53d244e6e0dd', '2022-10-18 10:00:00');
+
+-- DELETE a patient
+DELETE FROM patients WHERE patient_pk = '36d9a28a-1686-49ee-89a2-53d244e6e0dd';
+
+
+-- See all appointments
+SELECT * FROM appointments;
+
+
