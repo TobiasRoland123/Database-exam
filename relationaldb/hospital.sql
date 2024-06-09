@@ -1,13 +1,22 @@
+PRAGMA foreign_keys = ON;
+
 DROP TABLE IF EXISTS patients;
+DROP TABLE IF EXISTS doctors;
+DROP TABLE IF EXISTS appointments;
+DROP TABLE IF EXISTS departments;
+DROP TABLE IF EXISTS appointments_departments;
+DROP TABLE IF EXISTS prescriptions;
+DROP TABLE IF EXISTS patients_prescriptions;
+DROP TABLE IF EXISTS specializations;
+DROP TABLE IF EXISTS doctors_specializations;
+DROP TABLE IF EXISTS audit_log;
 
 CREATE TABLE patients(
 
-    patient_pk              TEXT,
+    patient_pk              TEXT PRIMARY KEY, 
     patient_first_name      TEXT,
     patient_last_name       TEXT,
-    patient_date_of_birth   INTEGER,
-    PRIMARY KEY(patient_pk)
-
+    patient_date_of_birth   INTEGER
 ) WITHOUT ROWID;
 
 
@@ -20,10 +29,10 @@ INSERT INTO patients VALUES(
 ("p9o8i7u6y5t4r3e2w1q0", "Emily", "Brown", 950715100);
 
 
-SELECT * FROM patients
 
-############################################################################
-DROP TABLE IF EXISTS doctors;
+
+-- *******************************************************************************
+
 
 CREATE TABLE doctors(
 doctor_pk           TEXT,
@@ -41,13 +50,13 @@ INSERT INTO doctors VALUES
 ("q1w2e3r4t5y6-u7i8o9p0a1s2d3", "Mohammed", "Ali");
 
 
-SELECT * FROM doctors;
 
 
 
 
-############################################################################
-DROP TABLE IF EXISTS appointments;
+
+-- *******************************************************************************
+
 
 -- Create the appointments table with foreign keys
 CREATE TABLE appointments (
@@ -55,7 +64,7 @@ CREATE TABLE appointments (
     doctor_fk           TEXT,
     patient_fk          TEXT,
     date_time           INTEGER,
-    PRIMARY KEY(appointment_pk)
+    PRIMARY KEY(appointment_pk),
     FOREIGN KEY (doctor_fk) REFERENCES doctors(doctor_pk) ON DELETE CASCADE,
     FOREIGN KEY (patient_fk) REFERENCES patients(patient_pk) ON DELETE CASCADE
 )WITHOUT ROWID;
@@ -69,13 +78,13 @@ INSERT INTO appointments VALUES
 ("3f212f6b-e23d-4a7b-a2a1-c30adff29c84", "q1w2e3r4t5y6-u7i8o9p0a1s2d3", "b5a4c3e2-d1f0-g9h8-i7j6-k5l4m3n2o1", 1634577600),
 ("de0a13bc-291a-4b9b-946e-92ae3c742ba6", "4728925d-2e41-441f-9063-2bdd987152ce", "p9o8i7u6y5t4r3e2w1q0", 1634581200);
 
-SELECT * FROM appointments;
 
 
 
-############################################################################
 
-DROP TABLE IF EXISTS departments;
+-- *******************************************************************************
+
+
 
 CREATE TABLE departments(
 department_pk               TEXT,
@@ -92,18 +101,18 @@ INSERT INTO departments VALUES
 ("q6w7e8r9-t0y1-u2i3o4p5a6s7d8", "Oncology");
 
 
-SELECT * FROM departments;
 
 
-############################################################################
-DROP TABLE IF EXISTS appointments_departments;
+
+-- *******************************************************************************
+
 
 CREATE TABLE appointments_departments(
   appointment_fk          TEXT,
   department_fk           TEXT,
-  PRIMARY KEY(appointment_fk, department_fk)
+  PRIMARY KEY(appointment_fk, department_fk),
   FOREIGN KEY(appointment_fk) REFERENCES appointments(appointment_pk),
-  FOREIGN KEY(department_fk) REFERENCES departments(department_fk)
+  FOREIGN KEY(department_fk) REFERENCES departments(department_pk)
   )WITHOUT ROWID;
 
 INSERT INTO appointments_departments VALUES
@@ -113,12 +122,12 @@ INSERT INTO appointments_departments VALUES
 ("93d7e7c2-62c4-4625-9954-68e1b6e2d876", "f5g6h7i8-j9k0-l1m2n3o4p5");
 
 
-SELECT * FROM appointments_departments;
 
 
 
-############################################################################
-DROP TABLE IF EXISTS prescriptions;
+
+-- *******************************************************************************
+
 
 CREATE TABLE prescriptions(
 prescription_pk             TEXT,
@@ -134,20 +143,20 @@ INSERT INTO prescriptions VALUES
 ("de8a0dcd-2b79-4c8f-a5f5-c0f9068e13f5", "Atorvastatin 20mg"),
 ("fa6b3489-1ef4-4b2f-8fa4-73bfedf3b315", "Albuterol Inhaler");
 
-SELECT * FROM prescriptions;
 
 
 
-############################################################################
 
-DROP TABLE IF EXISTS patients_prescriptions;
+-- *******************************************************************************
+
+
 
 CREATE TABLE patients_prescriptions(
     patient_fk              TEXT,
     prescription_fk         TEXT,
     PRIMARY KEY(patient_fk, prescription_fk),
-    FOREIGN KEY(patient_fk) REFERENCES patients(patient_pk),
-    FOREIGN KEY(prescription_fk) REFERENCES prescriptions(prescription_pk)
+    FOREIGN KEY(patient_fk) REFERENCES patients(patient_pk) ON DELETE CASCADE,
+    FOREIGN KEY(prescription_fk) REFERENCES prescriptions(prescription_pk) ON DELETE CASCADE
 ) WITHOUT ROWID;
 
 INSERT INTO patients_prescriptions (patient_fk, prescription_fk) VALUES
@@ -159,12 +168,12 @@ INSERT INTO patients_prescriptions (patient_fk, prescription_fk) VALUES
 ("p9o8i7u6y5t4r3e2w1q0", "fa6b3489-1ef4-4b2f-8fa4-73bfedf3b315");
 
 
-SELECT * FROM patients_prescriptions;
 
 
-############################################################################
 
-DROP TABLE IF EXISTS specializations;
+-- *******************************************************************************
+
+
 
 CREATE TABLE specializations(
     specialization_pk           TEXT,
@@ -180,19 +189,19 @@ INSERT INTO specializations (specialization_pk, specialization_name, specializat
 ("4d5e6f7g-8h9i0j1k-2l3m4n5o-6p7q8r9s0", "Pediatrics", "Medical care of infants, children, and adolescents"),
 ("8h9i0j1k-2l3m4n5o-6p7q8r9s-0t1u2v3w4", "Dermatology", "Treats conditions related to the skin, hair, and nails");
 
-SELECT * FROM specializations;
 
 
-############################################################################
 
-DROP TABLE IF EXISTS doctors_specializations;
+-- *******************************************************************************
+
+
 
 CREATE TABLE doctors_specializations(
     doctor_fk                   TEXT,
     specialization_fk           TEXT,
     PRIMARY KEY(doctor_fk, specialization_fk),
-    FOREIGN KEY(doctor_fk) REFERENCES doctors(doctor_pk),
-    FOREIGN KEY(specialization_fk) REFERENCES specializations(specialization_pk)
+    FOREIGN KEY(doctor_fk) REFERENCES doctors(doctor_pk) ON DELETE CASCADE,
+    FOREIGN KEY(specialization_fk) REFERENCES specializations(specialization_pk) ON DELETE CASCADE
 ) WITHOUT ROWID;
 
 
@@ -203,9 +212,52 @@ INSERT INTO doctors_specializations (doctor_fk, specialization_fk) VALUES
 ("s9a8m7p6l5e4-d3o2c1t0o9r8", "4d5e6f7g-8h9i0j1k-2l3m4n5o-6p7q8r9s0"),          -- Jessica Wang - Pediatrics
 ("q1w2e3r4t5y6-u7i8o9p0a1s2d3", "8h9i0j1k-2l3m4n5o-6p7q8r9s-0t1u2v3w4");        -- Mohammed Ali - Dermatology
 
-SELECT * FROM doctors_specializations;
+-- *******************************************************************************
+CREATE TABLE audit_log (
+    audit_id INT AUTO_INCREMENT PRIMARY KEY,
+    action      TEXT,
+    patient_id  TEXT,
+    action_time TEXT,
+    old_first_name TEXT,
+    new_first_name TEXT,
+    old_last_name TEXT,
+    new_last_name TEXT
+);
 
--- JOIN EXAMPLE
+
+
+
+-- *******************************************************************************
+
+SELECT * FROM patients;
+SELECT * FROM doctors;
+SELECT * FROM appointments;
+SELECT * FROM departments;
+SELECT * FROM appointments_departments;
+SELECT * FROM prescriptions;
+SELECT * FROM patients_prescriptions;
+SELECT * FROM specializations;
+SELECT * FROM doctors_specializations;
+SELECT * FROM audit_log;
+
+
+
+
+
+
+
+
+-- examples --------------
+
+
+
+
+
+
+
+
+
+-- JOIN EXAMPLE 1
 SELECT 
     a.appointment_pk,
     a.date_time,
@@ -221,6 +273,17 @@ JOIN
     doctors d ON a.doctor_fk = d.doctor_pk;
 
 
+-- JOIN EXAMPLE 2
+SELECT 
+    prescriptions.prescription_name,
+    patients.patient_first_name,
+    patients.patient_last_name
+FROM
+    patients_prescriptions
+JOIN
+    patients ON patients_prescriptions.patient_fk = patients.patient_pk 
+JOIN
+    prescriptions ON patients_prescriptions.prescription_fk = prescriptions.prescription_pk;
 
 
 -- Drop the view if it exists
@@ -315,10 +378,74 @@ INSERT INTO appointments (appointment_pk, doctor_fk, patient_fk, date_time) VALU
 ('d9607a79-5212-4c42-851f-ecf49a73e204', '4728925d-2e41-441f-9063-2bdd987152ce', '36d9a28a-1686-49ee-89a2-53d244e6e0dd', '2022-10-18 10:00:00');
 
 -- DELETE a patient
+PRAGMA foreign_keys = ON;
 DELETE FROM patients WHERE patient_pk = '36d9a28a-1686-49ee-89a2-53d244e6e0dd';
 
+
+SELECT * FROM patients;
 
 -- See all appointments
 SELECT * FROM appointments;
 
 
+
+--  TRIGGER 1
+
+DROP TRIGGER IF EXISTS prevent_patient_deletion;
+-- Create trigger to prevent deletion of patient if it exists in an appointment
+CREATE TRIGGER prevent_patient_deletion
+BEFORE DELETE ON patients
+BEGIN
+    SELECT RAISE(ABORT, 'Cannot delete patient. Patient exists in an appointment.')
+    FROM appointments
+    WHERE appointments.patient_fk = OLD.patient_pk;
+END;
+
+
+--  TRIGGER 2
+DROP TRIGGER IF EXISTS after_patient_update;
+
+CREATE TRIGGER after_patient_update
+AFTER UPDATE ON patients
+FOR EACH ROW
+BEGIN
+    INSERT INTO audit_log 
+    (action, patient_id, action_time, old_first_name, new_first_name,old_last_name,new_last_name)
+    VALUES('UPDATE', OLD.patient_pk, 1235, OLD.patient_first_name, NEW.patient_first_name, OLD.patient_last_name,NEW.patient_last_name);
+END;
+
+UPDATE patients
+SET patient_first_name = 'NewFirstName'
+WHERE patient_pk = '36d9a28a-1686-49ee-89a2-53d244e6e0dd';
+
+
+
+-- STORED PROCEDURE 1
+
+CREATE PROCEDURE edit_patient_first_name
+(patient_id TEXT, new_first_name TEXT) 
+AS 
+BEGIN 
+UPDATE patients SET patient_first_name = new_first_name 
+WHERE patient_pk = patient_id; 
+END;
+
+
+CALL edit_patient_first_name(1, 'torben');
+
+
+-- STORED PROCEDURE 2
+
+CREATE PROCEDURE InsertAppointment(
+    appointment_id      TEXT,
+    doctor_id           TEXT,
+    patient_id          TEXT,
+    appointment_time    TEXT
+)
+BEGIN
+    INSERT INTO appointments (appointment_pk, doctor_fk, patient_fk, date_time)
+    VALUES (appointment_id, doctor_id, patient_id, appointment_time);
+END;
+
+
+CALL InsertAppointment(1, '1doctor', '1patient', '2024-13-10 14:00:00');
